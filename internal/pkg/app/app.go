@@ -1,7 +1,61 @@
+//Вызов задач
+
 package app
 
+import (
+	"log"
+	"net/http"
+	"os"
+
+	"github.com/jedyEvgeny/time_tracker/internal/app/endpoint"
+	"github.com/jedyEvgeny/time_tracker/internal/database"
+	"github.com/jedyEvgeny/time_tracker/internal/service"
+	"github.com/joho/godotenv"
+)
+
 type App struct {
+	db *database.Database
+	e  *endpoint.Endpoint
+	s  *service.Service
 }
 
-func New() {
+func New() (*App, error) {
+	a := &App{}
+	a.db = database.New()
+	a.s = service.New()
+	a.e = endpoint.New(a.s, a.db)
+	err := a.db.Setup()
+	if err != nil {
+		return a, err
+	}
+	httpServerPath, err := findEnvironmentVariable("APP_HTTP_SERVER_PATH")
+	if err != nil {
+		return a, err
+	}
+	http.HandleFunc(httpServerPath, a.e.Status)
+	return a, nil
+}
+
+func (a *App) Run() error {
+	log.Println("запускаем сервер")
+	httpServerPort, err := findEnvironmentVariable("APP_HTTP_SERVER_PORT")
+	if err != nil {
+		return err
+	}
+	err = http.ListenAndServe(httpServerPort, nil)
+	if err != nil {
+		return err
+	}
+	log.Println("сервер закончил работу")
+	return nil
+}
+
+func findEnvironmentVariable(vrbl string) (string, error) {
+	err := godotenv.Load("etc/.env")
+	if err != nil {
+		log.Printf("ошибка загрузки переменных окружения: %v\n", err)
+		return "", err
+	}
+	value := os.Getenv(vrbl)
+	return value, nil
 }
