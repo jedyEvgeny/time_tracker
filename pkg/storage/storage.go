@@ -1,13 +1,12 @@
-package database
+package storage
 
 import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/joho/godotenv"
+	config "github.com/jedyEvgeny/time_tracker/etc"
 )
 
 type Database struct {
@@ -19,25 +18,25 @@ func New() *Database {
 }
 
 func (d *Database) Setup() error {
-	scheme, user, password, host, port, dbName, sslMode, err := findEnvironmentVariables()
+	config, err := config.NewConfig()
 	if err != nil {
 		return err
 	}
 	dbUrl := fmt.Sprintf("%s://%s:%s@%s:%s/%s?sslmode=%s",
-		scheme,
-		user,
-		password,
-		host,
-		port,
-		dbName,
-		sslMode,
+		config.DatabaseScheme,
+		config.StoragePostgresUser,
+		config.StoragePostgresPassword,
+		config.StoragePostgresHost,
+		config.StoragePostgresPort,
+		config.StoragePostgresDBName,
+		config.StoragePostgresSSLMode,
 	)
 	log.Println("URL для подключения к БД:", dbUrl)
 
 	// Создаём пул соединений
 	d.poolConnectionsDb, err = pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
-		log.Printf("нет возможности связаться с БД: %v\n", err)
+		log.Printf("не удаётся связаться с БД по пути: %v; %v\n", dbUrl, err)
 		return err
 	}
 	log.Println("соединение PostgreSQL установлено")
@@ -53,24 +52,8 @@ func (d *Database) Setup() error {
 		log.Printf("не удалось создать таблицу: %v\n", err)
 		return err
 	}
-	log.Println("Таблица успешно создана")
+	log.Println("Таблица в БД успешно создана")
 	return nil
-}
-
-func findEnvironmentVariables() (string, string, string, string, string, string, string, error) {
-	err := godotenv.Load("etc/.env")
-	if err != nil {
-		log.Printf("ошибка загрузки переменных окружения: %v\n", err)
-		return "", "", "", "", "", "", "", err
-	}
-	sheme := os.Getenv("APP_DATABASE_SCHEME")
-	user := os.Getenv("APP_STORAGE_POSTGRES_USER")
-	password := os.Getenv("APP_STORAGE_POSTGRES_PASSWORD")
-	host := os.Getenv("APP_STORAGE_POSTGRES_HOST")
-	port := os.Getenv("APP_STORAGE_POSTGRES_PORT")
-	dbName := os.Getenv("APP_STORAGE_POSTGRES_DBNAME")
-	sslMode := os.Getenv("APP_STORAGE_POSTGRES_SSLMODE")
-	return sheme, user, password, host, port, dbName, sslMode, nil
 }
 
 func (d *Database) AddPerson(u User) error {

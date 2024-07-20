@@ -3,9 +3,10 @@ package service
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 
-	"github.com/jedyEvgeny/time_tracker/internal/database"
+	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
 
 type Service struct {
@@ -15,11 +16,13 @@ func New() *Service {
 	return &Service{}
 }
 
-func (s *Service) DecodeJSON(r *http.Request) (database.User, error) {
-	var userData database.User
+func (s *Service) DecodeJSON(r *http.Request) (storage.User, error) {
+	var userData storage.User
+	log.Println("Приступили к декодированию JSON пользователя")
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
-		return database.User{}, err
+		return storage.User{}, err
 	}
+	log.Println("Закончили декодирование JSON пользователя")
 	return userData, nil
 }

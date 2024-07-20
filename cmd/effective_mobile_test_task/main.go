@@ -12,6 +12,6 @@ func main() {
 	a, _ := app.New()
 	err := a.Run()
 	if err != nil {
-		log.Fatal("не удалось прослушать порт", err)
+		log.Fatal("не удалось прослушать порт\n", err)
 	}
 }

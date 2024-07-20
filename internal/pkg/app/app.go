@@ -8,20 +8,20 @@ import (
 	"os"
 
 	"github.com/jedyEvgeny/time_tracker/internal/app/endpoint"
-	"github.com/jedyEvgeny/time_tracker/internal/database"
 	"github.com/jedyEvgeny/time_tracker/internal/service"
+	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 	"github.com/joho/godotenv"
 )
 
 type App struct {
-	db *database.Database
+	db *storage.Database
 	e  *endpoint.Endpoint
 	s  *service.Service
 }
 
 func New() (*App, error) {
 	a := &App{}
-	a.db = database.New()
+	a.db = storage.New()
 	a.s = service.New()
 	a.e = endpoint.New(a.s, a.db)
 	err := a.db.Setup()
@@ -51,7 +51,7 @@ func (a *App) Run() error {
 }
 
 func findEnvironmentVariable(vrbl string) (string, error) {
-	err := godotenv.Load("etc/.env")
+	err := godotenv.Load(".env")
 	if err != nil {
 		log.Printf("ошибка загрузки переменных окружения: %v\n", err)
 		return "", err
