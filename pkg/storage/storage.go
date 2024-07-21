@@ -5,8 +5,13 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	config "github.com/jedyEvgeny/time_tracker/etc"
+
+	// migrate tools
+	_ "github.com/golang-migrate/migrate/v4/database/postgres"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
 
 type Database struct {
@@ -39,20 +44,23 @@ func (d *Database) Setup() error {
 		log.Printf("не удаётся связаться с БД по пути: %v; %v\n", dbUrl, err)
 		return err
 	}
-	log.Println("соединение PostgreSQL установлено")
+	log.Println("Соединение PostgreSQL установлено")
 
-	// Создаем таблицу в БД
-	_, err = d.poolConnectionsDb.Exec(context.Background(), `
-        CREATE TABLE IF NOT EXISTS users (
-            id SERIAL PRIMARY KEY,
-            passport_number TEXT NOT NULL
-        )
-    `)
+	pathToMigrations := "file://pkg/storage"
+
+	m, err := migrate.New(
+		pathToMigrations,
+		dbUrl)
+
 	if err != nil {
-		log.Printf("не удалось создать таблицу: %v\n", err)
-		return err
+		log.Fatalf("не удаётся создать миграцию: %v", err)
 	}
-	log.Println("Таблица в БД успешно создана")
+
+	if err := m.Up(); err != nil {
+		log.Fatalf("не удалось применить миграцию: %v", err)
+	}
+
+	log.Println("Миграции при создании таблиц БД успешно применены")
 	return nil
 }
 

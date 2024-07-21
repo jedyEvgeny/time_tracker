@@ -30,6 +30,7 @@ func New(d Decoder, a Adder) *Endpoint {
 }
 
 func (e *Endpoint) Status(w http.ResponseWriter, r *http.Request) {
+	log.Println("Получили запрос от клиента")
 	userData, err := e.dec.DecodeJSON(r)
 	if err != nil {
 		http.Error(w, "нераспознан JSON", http.StatusBadRequest)

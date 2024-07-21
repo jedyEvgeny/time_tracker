@@ -18,11 +18,11 @@ func New() *Service {
 
 func (s *Service) DecodeJSON(r *http.Request) (storage.User, error) {
 	var userData storage.User
-	log.Println("Приступили к декодированию JSON пользователя")
+	log.Println("Приступили к декодированию входящего JSON пользователя")
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
 		return storage.User{}, err
 	}
-	log.Println("Закончили декодирование JSON пользователя")
+	log.Println("Закончили декодирование входящего JSON пользователя")
 	return userData, nil
 }

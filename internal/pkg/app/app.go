@@ -37,7 +37,7 @@ func New() (*App, error) {
 }
 
 func (a *App) Run() error {
-	log.Println("запускаем сервер")
+	log.Println("Запускаем сервер")
 	httpServerPort, err := findEnvironmentVariable("APP_HTTP_SERVER_PORT")
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	log.Println("сервер закончил работу")
+	log.Println("Сервер закончил работу")
 	return nil
 }
 
