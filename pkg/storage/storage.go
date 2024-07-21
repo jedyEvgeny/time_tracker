@@ -9,7 +9,6 @@ import (
 	"github.com/jackc/pgx/v4/pgxpool"
 	config "github.com/jedyEvgeny/time_tracker/etc"
 
-	// migrate tools
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 )
@@ -38,7 +37,14 @@ func (d *Database) Setup() error {
 	)
 	log.Println("URL для подключения к БД:", dbUrl)
 
-	// Создаём пул соединений
+	err = useMigrations(dbUrl)
+	if err != nil {
+		return err
+	}
+
+	log.Println("Таблицы БД готовы к работе")
+
+	//Создаём пул для добавления информации в БД
 	d.poolConnectionsDb, err = pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
 		log.Printf("не удаётся связаться с БД по пути: %v; %v\n", dbUrl, err)
@@ -46,25 +52,31 @@ func (d *Database) Setup() error {
 	}
 	log.Println("Соединение PostgreSQL установлено")
 
-	pathToMigrations := "file://pkg/storage"
+	return nil
+}
+
+func useMigrations(dbUrl string) error {
+	pathToMigrations := "file://migrations"
 
 	m, err := migrate.New(
 		pathToMigrations,
 		dbUrl)
-
 	if err != nil {
-		log.Fatalf("не удаётся создать миграцию: %v", err)
+		log.Fatalf("не удаётся создать миграцию: %v\n", err)
 	}
 
-	if err := m.Up(); err != nil {
-		log.Fatalf("не удалось применить миграцию: %v", err)
+	err = m.Up()
+	if err != nil {
+		log.Printf("Не требуется применять миграцию: %v\n", err)
+		return nil
 	}
 
-	log.Println("Миграции при создании таблиц БД успешно применены")
+	log.Println("Миграции успешно выполнены")
 	return nil
 }
 
 func (d *Database) AddPerson(u User) error {
+	log.Println("Приступили к добавлению информации в БД")
 	_, err := d.poolConnectionsDb.Exec(context.Background(), "INSERT INTO users (passport_number) VALUES ($1)", u.PassportNumber)
 	return err
 }

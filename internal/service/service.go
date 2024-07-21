@@ -3,8 +3,11 @@ package service
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
@@ -24,5 +27,78 @@ func (s *Service) DecodeJSON(r *http.Request) (storage.User, error) {
 		return storage.User{}, err
 	}
 	log.Println("Закончили декодирование входящего JSON пользователя")
+	err = checkJSON(userData)
+	if err != nil {
+		return userData, err
+	}
+	log.Println("Проверки корректности JSON выполнены успешно")
 	return userData, nil
 }
+
+func checkJSON(u storage.User) error {
+	if len(u.PassportNumber) != 11 {
+		log.Println("ожидалось 11 символов в запросе")
+		err := errors.New("неверная длина строки, ожидается 11 символов")
+		return err
+	}
+	parts := strings.Split(u.PassportNumber, " ")
+	if len(parts) != 2 {
+		log.Println("ожидался один пробел в запросе")
+		err := errors.New("ожидался один пробел в запросе")
+		return err
+	}
+	if len(parts[0]) != 4 && len(parts[1]) != 6 {
+		log.Println("неверная длина блока серии или номера паспорта")
+		err := errors.New("неверная длина блока серии или номера паспорта")
+		return err
+	}
+	elFirst, err := strconv.Atoi(parts[0])
+	if err != nil {
+		log.Println("в первом блоке тела запроса не только цифры")
+		err := errors.New("в первом блоке тела запроса не только цифры")
+		return err
+	}
+	elSecond, err := strconv.Atoi(parts[1])
+	if err != nil {
+		log.Println("во втором блоке тела запроса не только цифры")
+		err := errors.New("во втором блоке тела запроса не только цифры")
+		return err
+	}
+	if elFirst < 0 || elSecond < 0 {
+		log.Println("цифровой блок со знаком минус не допустим")
+		err := errors.New("цифровой блок со знаком минус не допустим")
+		return err
+	}
+	return nil
+}
+
+//--------------------------
+// func (s *Service) DecodeJSON(r *http.Request) (storage.EnrichedUser, error) {
+// 	var input string
+// 	log.Println("Приступили к декодированию входящего JSON пользователя")
+// 	err := json.Unmarshal([]byte(jsonData), &input)
+// 	if err != nil {
+// 		fmt.Println("Ошибка при разборе JSON:", err)
+// 		return
+// 	}
+
+// 	err := json.NewDecoder(r.Body).Decode(&input)
+// 	if err != nil {
+// 		return storage.EnrichedUser{}, err
+// 	}
+// 	log.Println("Закончили декодирование входящего JSON пользователя")
+// 	err = checkJSON(input)
+// 	if err != nil {
+// 		return storage.EnrichedUser{}, err
+// 	}
+// 	userData, _ := fillStructJSON(&input)
+// 	return userData, nil
+// }
+
+// func fillStructJSON(input *string) (storage.EnrichedUser, error) {
+// 	var userData storage.EnrichedUser
+// 	parts := strings.Split(*input, " ")
+// 	userData.PassportSerie = parts[0]
+// 	userData.PassportNumber = parts[1]
+// 	return userData, nil
+// }

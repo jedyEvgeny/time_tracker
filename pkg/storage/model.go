@@ -19,6 +19,7 @@ type EnrichedUser struct {
 type UserTask struct {
 	ID        int       `json:"id"`
 	UserID    int       `json:"userID"`
+	TaskName  string    `json:"taskName"`
 	StartTime time.Time `json:"startTime"`
 	EndTime   time.Time `json:"endTime"`
 	Duration  int       `json:"duration"`
