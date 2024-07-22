@@ -75,8 +75,8 @@ func useMigrations(dbUrl string) error {
 	return nil
 }
 
-func (d *Database) AddPerson(u User) error {
+func (d *Database) AddPerson(serie, number string) error {
 	log.Println("Приступили к добавлению информации в БД")
-	_, err := d.poolConnectionsDb.Exec(context.Background(), "INSERT INTO users (passport_number) VALUES ($1)", u.PassportNumber)
+	_, err := d.poolConnectionsDb.Exec(context.Background(), "INSERT INTO users (passport_serie, passport_number) VALUES ($1, $2)", serie, number)
 	return err
 }
