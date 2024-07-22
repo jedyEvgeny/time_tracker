@@ -9,6 +9,7 @@ import (
 
 	"github.com/jedyEvgeny/time_tracker/internal/app/endpoint"
 	"github.com/jedyEvgeny/time_tracker/internal/service"
+	"github.com/jedyEvgeny/time_tracker/pkg/httpclient"
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 	"github.com/joho/godotenv"
 )
@@ -17,13 +18,15 @@ type App struct {
 	db *storage.Database
 	e  *endpoint.Endpoint
 	s  *service.Service
+	c  *httpclient.Client
 }
 
 func New() (*App, error) {
 	a := &App{}
 	a.db = storage.New()
 	a.s = service.New()
-	a.e = endpoint.New(a.s, a.db)
+	a.c = httpclient.New()
+	a.e = endpoint.New(a.s, a.db, a.c)
 	err := a.db.Setup()
 	if err != nil {
 		return a, err

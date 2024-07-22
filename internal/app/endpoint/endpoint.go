@@ -5,14 +5,17 @@ package endpoint
 import (
 	"log"
 	"net/http"
+
+	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
 
 type Decoder interface {
 	DecodeJSON(*http.Request) (string, string, error)
+	EnrichUserData(*http.Response, string, string) (storage.EnrichedUser, error)
 }
 
 type Adder interface {
-	AddPerson(string, string) error
+	AddPerson(storage.EnrichedUser) error
 }
 
 type EndpointCaller interface {
@@ -22,12 +25,14 @@ type EndpointCaller interface {
 type Endpoint struct {
 	dec Decoder
 	adr Adder
+	edc EndpointCaller
 }
 
-func New(d Decoder, a Adder) *Endpoint {
+func New(d Decoder, a Adder, c EndpointCaller) *Endpoint {
 	return &Endpoint{
 		dec: d,
 		adr: a,
+		edc: c,
 	}
 }
 
@@ -39,13 +44,7 @@ func (e *Endpoint) Status(w http.ResponseWriter, r *http.Request) {
 		log.Println("неудача в распознавании JSON", err)
 		return
 	}
-
-	//        https://localhost/info?passportSerie=6776&passportNumber=614544
-	//https://editor.swagger.io/info?passportSerie=1234&passportNumber=567890
-
-	infoEndpoint := "https://localhost/info" + "?passportSerie=" + serie + "&passportNumber=" + number
-	log.Println("Сформирован get-запрос: ", infoEndpoint)
-	resp, err := http.Get(infoEndpoint)
+	resp, err := e.edc.CallEndpoint(serie, number)
 	if err != nil {
 		http.Error(w, "неудача при выполнении GET-запроса на эндпоинт /info", http.StatusInternalServerError)
 		log.Println("неудача при выполнении GET-запроса на эндпоинт /info", err)
@@ -53,8 +52,11 @@ func (e *Endpoint) Status(w http.ResponseWriter, r *http.Request) {
 		defer resp.Body.Close()
 		log.Printf("Получен ответ от info эндпоинта: %d\n", resp.StatusCode)
 	}
-
-	err = e.adr.AddPerson(serie, number)
+	enrichedUserData, err := e.dec.EnrichUserData(resp, serie, number)
+	if err != nil {
+		return
+	}
+	err = e.adr.AddPerson(enrichedUserData)
 	if err != nil {
 		http.Error(w, "неудача при добавлении данных в БД", http.StatusInternalServerError)
 		log.Println("неудача при добавлении данных в БД", err)

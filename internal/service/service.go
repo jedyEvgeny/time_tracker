@@ -72,33 +72,20 @@ func checkJSON(u storage.User) (string, string, error) {
 	return parts[0], parts[1], nil
 }
 
-//--------------------------
-// func (s *Service) DecodeJSON(r *http.Request) (storage.EnrichedUser, error) {
-// 	var input string
-// 	log.Println("Приступили к декодированию входящего JSON пользователя")
-// 	err := json.Unmarshal([]byte(jsonData), &input)
-// 	if err != nil {
-// 		fmt.Println("Ошибка при разборе JSON:", err)
-// 		return
-// 	}
-
-// 	err := json.NewDecoder(r.Body).Decode(&input)
-// 	if err != nil {
-// 		return storage.EnrichedUser{}, err
-// 	}
-// 	log.Println("Закончили декодирование входящего JSON пользователя")
-// 	err = checkJSON(input)
-// 	if err != nil {
-// 		return storage.EnrichedUser{}, err
-// 	}
-// 	userData, _ := fillStructJSON(&input)
-// 	return userData, nil
-// }
-
-// func fillStructJSON(input *string) (storage.EnrichedUser, error) {
-// 	var userData storage.EnrichedUser
-// 	parts := strings.Split(*input, " ")
-// 	userData.PassportSerie = parts[0]
-// 	userData.PassportNumber = parts[1]
-// 	return userData, nil
-// }
+func (s *Service) EnrichUserData(r *http.Response, serie, number string) (storage.EnrichedUser, error) {
+	var userData storage.EnrichedUser
+	userData.PassportNumber = number
+	userData.PassportSerie = serie
+	if r == nil {
+		log.Println("Обогощение данных со стороннего API не выполнено")
+		return userData, nil
+	}
+	log.Println("Приступили к декодированию входящего JSON стороннего API")
+	err := json.NewDecoder(r.Body).Decode(&userData)
+	if err != nil {
+		log.Println("декодирование входящего JSON стороннего API не выполнено")
+		return userData, nil
+	}
+	log.Println("Выполнено обогощение данных на стороннем API")
+	return storage.EnrichedUser{}, nil
+}

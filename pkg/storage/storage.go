@@ -2,6 +2,7 @@ package storage
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"log"
 
@@ -41,7 +42,6 @@ func (d *Database) Setup() error {
 	if err != nil {
 		return err
 	}
-
 	log.Println("Таблицы БД готовы к работе")
 
 	//Создаём пул для добавления информации в БД
@@ -75,8 +75,41 @@ func useMigrations(dbUrl string) error {
 	return nil
 }
 
-func (d *Database) AddPerson(serie, number string) error {
+func (d *Database) AddPerson(e EnrichedUser) error {
+	err := d.checkPresonInDB(e)
+	if err != nil {
+		return err
+	}
 	log.Println("Приступили к добавлению информации в БД")
-	_, err := d.poolConnectionsDb.Exec(context.Background(), "INSERT INTO users (passport_serie, passport_number) VALUES ($1, $2)", serie, number)
+	query := `
+	INSERT INTO users
+	(passport_serie, passport_number, surname, name, patronymic, address)
+	VALUES
+	($1, $2, $3, $4, $5, $6)
+	`
+	_, err = d.poolConnectionsDb.Exec(context.Background(),
+		query,
+		e.PassportSerie,
+		e.PassportNumber,
+		e.Surname,
+		e.Name,
+		e.Patronymic,
+		e.Address,
+	)
 	return err
+}
+
+func (d *Database) checkPresonInDB(e EnrichedUser) error {
+	var count int
+	query := "SELECT COUNT(*) FROM users WHERE passport_serie = $1 AND passport_number = $2"
+	err := d.poolConnectionsDb.QueryRow(context.Background(), query, e.PassportSerie, e.PassportNumber).Scan(&count)
+	if err != nil {
+		return err
+	}
+	if count > 0 {
+		log.Println("человек с данными паспортными данными уже есть в БД:", e.PassportSerie, e.PassportNumber)
+		err = errors.New("паспортные данные уже есть в БД")
+		return err
+	}
+	return nil
 }
