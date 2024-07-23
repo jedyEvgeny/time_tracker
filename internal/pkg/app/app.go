@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/jedyEvgeny/time_tracker/internal/app/endpoint"
+	routes "github.com/jedyEvgeny/time_tracker/internal/delivery/http"
 	"github.com/jedyEvgeny/time_tracker/internal/service"
 	"github.com/jedyEvgeny/time_tracker/pkg/httpclient"
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
@@ -31,11 +32,12 @@ func New() (*App, error) {
 	if err != nil {
 		return a, err
 	}
-	httpServerPath, err := findEnvironmentVariable("APP_HTTP_SERVER_PATH")
-	if err != nil {
-		return a, err
-	}
-	http.HandleFunc(httpServerPath, a.e.Status)
+	// httpServerPath, err := findEnvironmentVariable("APP_HTTP_SERVER_PATH")
+	// if err != nil {
+	// 	return a, err
+	// }
+	// http.HandleFunc(httpServerPath, a.e.Status)
+	routes.SetupRoutes(a.e)
 	return a, nil
 }
 

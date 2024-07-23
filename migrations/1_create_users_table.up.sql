@@ -5,5 +5,5 @@ CREATE TABLE IF NOT EXISTS users (
     surname TEXT,
     name TEXT,
     patronymic TEXT,
-    address TEXT
+    address TEXT,
 );

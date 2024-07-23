@@ -84,8 +84,20 @@ func (s *Service) EnrichUserData(r *http.Response, serie, number string) (storag
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
 		log.Println("декодирование входящего JSON стороннего API не выполнено")
-		return userData, nil
+		return userData, err
 	}
 	log.Println("Выполнено обогощение данных на стороннем API")
-	return storage.EnrichedUser{}, nil
+	return userData, nil
+}
+
+func (s *Service) ChangeUserData(req *http.Request) (storage.EnrichedUser, error) {
+	var userData storage.EnrichedUser
+	log.Println("Приступили к обогощению данных из JSON")
+	err := json.NewDecoder(req.Body).Decode(&userData)
+	if err != nil {
+		log.Println("декодирование обогощённого JSON не выполнено")
+		return userData, err
+	}
+	log.Println("Выполнено обогощение данных из JSON")
+	return userData, nil
 }

@@ -18,6 +18,7 @@ type Config struct {
 	StoragePostgresPassword string
 	StoragePostgresDBName   string
 	StoragePostgresSSLMode  string
+	HTTPClientHost          string
 }
 
 func NewConfig() (Config, error) {
@@ -37,6 +38,7 @@ func NewConfig() (Config, error) {
 		StoragePostgresPassword: os.Getenv("APP_STORAGE_POSTGRES_PASSWORD"),
 		StoragePostgresDBName:   os.Getenv("APP_STORAGE_POSTGRES_DBNAME"),
 		StoragePostgresSSLMode:  os.Getenv("APP_STORAGE_POSTGRES_SSLMODE"),
+		HTTPClientHost:          os.Getenv("APP_HTTP_CLIENT_HOST"),
 	}
 	return cfg, nil
 }
