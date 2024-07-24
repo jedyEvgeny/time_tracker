@@ -3,6 +3,5 @@ CREATE TABLE IF NOT EXISTS user_tasks (
     user_id INTEGER REFERENCES users(id),
     task_name TEXT,
     start_time TIMESTAMPTZ,
-    end_time TIMESTAMPTZ,
-    duration INTERVAL
+    end_time TIMESTAMPTZ
 );

@@ -14,6 +14,8 @@ type Decoder interface {
 	GetPudding([]storage.EnrichedUser) ([]byte, error)
 	DecodeJSONTask(*http.Request) (storage.TaskEnrichedUser, error)
 	Now() (time.Time, error)
+	DecodeJsonTaskDur(*http.Request) (storage.TaskEnrichedUser, error)
+	GetSortTasks([]storage.UserTask) ([]byte, error)
 }
 
 type Adder interface {
@@ -23,6 +25,7 @@ type Adder interface {
 	GetUsersByFilter(storage.EnrichedUser) ([]storage.EnrichedUser, error)
 	AddStartTask(storage.TaskEnrichedUser, time.Time) error
 	AddFinishTask(storage.TaskEnrichedUser, time.Time) error
+	FindTimeTask(storage.TaskEnrichedUser) ([]storage.UserTask, error)
 }
 
 type EndpointCaller interface {

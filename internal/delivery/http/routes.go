@@ -13,4 +13,5 @@ func SetupRoutes(e *endpoint.Endpoint) {
 	http.HandleFunc("/getUsers", e.StatusFilter)   //Обработчик с методом GET
 	http.HandleFunc("/startTask", e.StatusStart)   //Обработчик с методом PUT
 	http.HandleFunc("/finishTask", e.StatusFinish) //Обработчик с методом PUT
+	http.HandleFunc("/duration", e.StatusDur)      //Обработчик с методом GET
 }

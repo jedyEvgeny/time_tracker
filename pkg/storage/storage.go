@@ -1,3 +1,5 @@
+// Структура таблиц БД
+// Общение с БД в части инфо о пользователе
 package storage
 
 import (
@@ -44,7 +46,7 @@ func (d *Database) Setup() error {
 	}
 	log.Println("Таблицы БД готовы к работе")
 
-	//Создаём пул для добавления информации в БД
+	//Создаём пул для общения с БД
 	d.poolConnectionsDb, err = pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
 		log.Printf("не удаётся связаться с БД по пути: %v; %v\n", dbUrl, err)

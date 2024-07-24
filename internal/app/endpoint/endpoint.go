@@ -142,7 +142,7 @@ func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
 	log.Println("Получили запрос от клиента")
 	if r.Method != "PUT" {
 		w.Write([]byte("метод запроса должен быть PUT"))
-		log.Println("метод запроса не PUT, а", r.Method)
+		log.Printf("метод запроса не %v, а PUT\n", r.Method)
 		return
 	}
 	userTask, err := e.dec.DecodeJSONTask(r)
@@ -168,8 +168,8 @@ func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
 
 func (e *Endpoint) StatusFinish(w http.ResponseWriter, r *http.Request) {
 	log.Println("Получили запрос от клиента")
-	if r.Method != "PUT" {
-		w.Write([]byte("метод запроса должен быть PUT"))
+	if r.Method != "GET" {
+		w.Write([]byte("метод запроса должен быть GET"))
 		log.Println("метод запроса не PUT, а", r.Method)
 		return
 	}
@@ -192,4 +192,31 @@ func (e *Endpoint) StatusFinish(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Время окончания задачи добавлено в БД"))
+}
+
+func (e *Endpoint) StatusDur(w http.ResponseWriter, r *http.Request) {
+	log.Println("Получили запрос от клиента")
+	if r.Method != "GET" {
+		w.Write([]byte("метод запроса должен быть GET"))
+		log.Println("метод запроса не GET, а", r.Method)
+		return
+	}
+	userTask, err := e.dec.DecodeJsonTaskDur(r)
+	if err != nil {
+		http.Error(w, "не распознан JSON в задаче", http.StatusInternalServerError)
+		return
+	}
+	userTaskDur, err := e.adr.FindTimeTask(userTask)
+	if err != nil {
+		return
+	}
+	log.Println("Получены данные по задачам пользователя из БД")
+	response, err := e.dec.GetSortTasks(userTaskDur)
+	if err != nil {
+		log.Println("не удалось преобразовать данные из БД в JSON")
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
 }

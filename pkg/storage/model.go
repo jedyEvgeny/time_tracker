@@ -22,7 +22,6 @@ type UserTask struct {
 	TaskName  string    `json:"taskName"`
 	StartTime time.Time `json:"startTime"`
 	EndTime   time.Time `json:"endTime"`
-	Duration  int       `json:"duration"`
 }
 
 type TaskEnrichedUser struct {

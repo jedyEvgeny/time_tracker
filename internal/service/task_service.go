@@ -3,8 +3,10 @@ package service
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
 	"time"
 
@@ -16,11 +18,15 @@ func (s *Service) DecodeJSONTask(r *http.Request) (storage.TaskEnrichedUser, err
 	log.Println("Приступили к декодированию входящего JSON задачи")
 	err := json.NewDecoder(r.Body).Decode(&userTask)
 	if err != nil {
-		log.Println("не распознано наименование задачи")
+		log.Println("не распознан JSON задачи")
 		return userTask, err
 	}
 	log.Println("Закончили декодирование входящего JSON пользователя")
-	err = checkJsonTask(userTask)
+	if userTask.TaskName == "" {
+		err := errors.New("нет наименования задачи")
+		return userTask, err
+	}
+	err = checkJsonPassport(userTask)
 	if err != nil {
 		return userTask, err
 	}
@@ -28,11 +34,7 @@ func (s *Service) DecodeJSONTask(r *http.Request) (storage.TaskEnrichedUser, err
 	return userTask, nil
 }
 
-func checkJsonTask(u storage.TaskEnrichedUser) error {
-	if u.TaskName == "" {
-		err := errors.New("нет наименования задачи")
-		return err
-	}
+func checkJsonPassport(u storage.TaskEnrichedUser) error {
 	if len(u.PassportSerie) != 4 {
 		log.Println("ожидалось 4 символов в серии паспорта")
 		err := errors.New("неверная длина серии паспорта, ожидается 4 символа")
@@ -70,4 +72,57 @@ func (s *Service) Now() (time.Time, error) {
 		return time.Time{}, err
 	}
 	return time.Now().In(vladivostokLocation), nil
+}
+
+func (s *Service) DecodeJsonTaskDur(r *http.Request) (storage.TaskEnrichedUser, error) {
+	var userTask storage.TaskEnrichedUser
+	log.Println("Приступили к декодированию входящего JSON задачи")
+	err := json.NewDecoder(r.Body).Decode(&userTask)
+	if err != nil {
+		log.Println("не распознан JSON задачи")
+		return userTask, err
+	}
+	log.Println("Закончили декодировать входящий JSON пользователя")
+	err = checkJsonPassport(userTask)
+	if err != nil {
+		return userTask, err
+	}
+	log.Println("Проверки корректности JSON выполнены успешно")
+	return userTask, nil
+}
+
+func (s *Service) GetSortTasks(u []storage.UserTask) ([]byte, error) {
+	taskDurationsSlice := countDuringEvenTask(u)
+	sort.Slice(taskDurationsSlice, func(i, j int) bool {
+		return taskDurationsSlice[i].TotalDuration > taskDurationsSlice[j].TotalDuration
+	})
+	response := getResponse(taskDurationsSlice)
+	return response, nil
+}
+
+func countDuringEvenTask(u []storage.UserTask) []TaskDuration {
+	var taskDurationsSlice []TaskDuration
+	for _, task := range u {
+		duration := task.EndTime.Sub(task.StartTime)
+		hours := int(duration.Hours())
+		minutes := int(duration.Minutes()) % 60
+
+		taskDurationsSlice = append(taskDurationsSlice, TaskDuration{
+			TaskName:      task.TaskName,
+			Hours:         hours,
+			Minutes:       minutes,
+			TotalDuration: duration,
+		})
+	}
+	return taskDurationsSlice
+}
+
+func getResponse(taskDurationsSlice []TaskDuration) []byte {
+	var response []byte
+	for _, task := range taskDurationsSlice {
+		taskInfo := fmt.Sprintf("задача '%s' занимает: %d часов - %d минут", task.TaskName, task.Hours, task.Minutes)
+		response = append(response, taskInfo...)
+		response = append(response, '\n')
+	}
+	return response
 }
