@@ -165,3 +165,31 @@ func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Старт задачи добавлен в БД"))
 }
+
+func (e *Endpoint) StatusFinish(w http.ResponseWriter, r *http.Request) {
+	log.Println("Получили запрос от клиента")
+	if r.Method != "PUT" {
+		w.Write([]byte("метод запроса должен быть PUT"))
+		log.Println("метод запроса не PUT, а", r.Method)
+		return
+	}
+	userTask, err := e.dec.DecodeJSONTask(r)
+	if err != nil {
+		http.Error(w, "не распознан JSON в задаче", http.StatusBadRequest)
+		return
+	}
+	finishTimeTask, err := e.dec.Now()
+	if err != nil {
+		return
+	}
+	log.Printf("Окончание задачи %v в : %v.\n", userTask.TaskName, finishTimeTask)
+
+	err = e.adr.AddFinishTask(userTask, finishTimeTask)
+	if err != nil {
+		return
+	}
+	log.Println("Окончание задачи добавлено в БД")
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Время окончания задачи добавлено в БД"))
+}

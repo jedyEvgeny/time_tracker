@@ -22,6 +22,7 @@ type Adder interface {
 	ChangePerson(storage.EnrichedUser) error
 	GetUsersByFilter(storage.EnrichedUser) ([]storage.EnrichedUser, error)
 	AddStartTask(storage.TaskEnrichedUser, time.Time) error
+	AddFinishTask(storage.TaskEnrichedUser, time.Time) error
 }
 
 type EndpointCaller interface {
