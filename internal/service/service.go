@@ -101,3 +101,25 @@ func (s *Service) ChangeUserData(req *http.Request) (storage.EnrichedUser, error
 	log.Println("Выполнено обогощение данных из JSON")
 	return userData, nil
 }
+
+func (s *Service) GetPudding(users []storage.EnrichedUser) ([]byte, error) {
+	amountElemOnPage := 2 // Количество позиций в ответе клиенту на одной странице
+	startPageDisplay := 1 // Отображаем ответ клиенту с первой страницы
+	// В дальнейшем возможна реализация обработчика для обновления информации на новой странице
+	// При получении get-запроса другого номера страницы
+
+	startIdx := (startPageDisplay - 1) * amountElemOnPage
+	endIdx := startIdx + amountElemOnPage
+
+	var slicedUsers []storage.EnrichedUser
+	if startIdx < len(users) {
+		slicedUsers = users[startIdx:min(endIdx, len(users))]
+	}
+
+	response, err := json.Marshal(slicedUsers)
+	if err != nil {
+		log.Println("не удалось преобразовать данные из БД в JSON")
+		return nil, err
+	}
+	return response, nil
+}

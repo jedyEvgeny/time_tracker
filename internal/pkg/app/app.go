@@ -32,11 +32,6 @@ func New() (*App, error) {
 	if err != nil {
 		return a, err
 	}
-	// httpServerPath, err := findEnvironmentVariable("APP_HTTP_SERVER_PATH")
-	// if err != nil {
-	// 	return a, err
-	// }
-	// http.HandleFunc(httpServerPath, a.e.Status)
 	routes.SetupRoutes(a.e)
 	return a, nil
 }

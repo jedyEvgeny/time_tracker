@@ -11,7 +11,6 @@ type Config struct {
 	DatabaseScheme          string
 	HTTPServerHost          string
 	HTTPServerPort          string
-	HTTPServerPath          string
 	StoragePostgresHost     string
 	StoragePostgresPort     string
 	StoragePostgresUser     string
@@ -30,7 +29,6 @@ func NewConfig() (Config, error) {
 	cfg := Config{
 		HTTPServerHost:          os.Getenv("APP_HTTP_SERVER_HOST"),
 		HTTPServerPort:          os.Getenv("APP_HTTP_SERVER_PORT"),
-		HTTPServerPath:          os.Getenv("APP_HTTP_SERVER_PATH"),
 		DatabaseScheme:          os.Getenv("APP_DATABASE_SCHEME"),
 		StoragePostgresHost:     os.Getenv("APP_STORAGE_POSTGRES_HOST"),
 		StoragePostgresPort:     os.Getenv("APP_STORAGE_POSTGRES_PORT"),

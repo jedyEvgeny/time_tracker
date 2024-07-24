@@ -9,9 +9,12 @@ import (
 )
 
 func main() {
-	a, _ := app.New()
-	err := a.Run()
+	a, err := app.New()
 	if err != nil {
-		log.Fatal("не удалось прослушать порт\n", err)
+		log.Fatal("обнаружена ошибка при старте сервиса: ", err)
+	}
+	err = a.Run()
+	if err != nil {
+		log.Fatal("не удалось прослушать порт", err)
 	}
 }

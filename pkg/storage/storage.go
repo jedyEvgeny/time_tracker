@@ -38,7 +38,7 @@ func (d *Database) Setup() error {
 	)
 	log.Println("URL для подключения к БД:", dbUrl)
 
-	err = useMigrations(dbUrl)
+	err = executeMigrations(dbUrl)
 	if err != nil {
 		return err
 	}
@@ -55,19 +55,24 @@ func (d *Database) Setup() error {
 	return nil
 }
 
-func useMigrations(dbUrl string) error {
+func executeMigrations(dbUrl string) error {
 	pathToMigrations := "file://migrations"
 
 	m, err := migrate.New(
 		pathToMigrations,
 		dbUrl)
 	if err != nil {
-		log.Fatalf("не удаётся создать миграцию: %v\n", err)
+		log.Printf("не удаётся создать миграцию: %v\n", err)
+		return err
 	}
 	err = m.Up()
-	if err != nil {
-		log.Printf("миграции не требуются: %v\n", err)
+	if errors.Is(err, migrate.ErrNoChange) {
+		log.Println("В базе данных нет новых миграций для применения")
 		return nil
+	}
+	if err != nil {
+		log.Println("ошибка при выполнении миграции:", err)
+		return err
 	}
 	log.Println("Миграции успешно выполнены")
 	return nil
@@ -157,4 +162,48 @@ func (d *Database) ChangePerson(e EnrichedUser) error {
 		e.PassportNumber,
 	)
 	return err
+}
+
+func (d *Database) GetUsersByFilter(filter EnrichedUser) ([]EnrichedUser, error) {
+	var usersSlice []EnrichedUser
+
+	query := "SELECT id, passport_serie, passport_number, surname, name, patronymic, address FROM users WHERE " +
+		"($1 = '' OR passport_serie = $1) AND " +
+		"($2 = '' OR passport_number = $2) AND " +
+		"($3 = '' OR surname = $3) AND " +
+		"($4 = '' OR name = $4) AND " +
+		"($5 = '' OR patronymic = $5) AND " +
+		"($6 = '' OR address = $6)"
+
+	rows, err := d.poolConnectionsDb.Query(context.Background(), query,
+		filter.PassportSerie,
+		filter.PassportNumber,
+		filter.Surname,
+		filter.Name,
+		filter.Patronymic,
+		filter.Address,
+	)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user EnrichedUser
+		err := rows.Scan(
+			&user.ID,
+			&user.PassportSerie,
+			&user.PassportNumber,
+			&user.Surname,
+			&user.Name,
+			&user.Patronymic,
+			&user.Address,
+		)
+		if err != nil {
+			return nil, err
+		}
+		usersSlice = append(usersSlice, user)
+	}
+
+	return usersSlice, nil
 }

@@ -5,25 +5,7 @@ package endpoint
 import (
 	"log"
 	"net/http"
-
-	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
-
-type Decoder interface {
-	DecodeJSON(*http.Request) (string, string, error)
-	EnrichUserData(*http.Response, string, string) (storage.EnrichedUser, error)
-	ChangeUserData(*http.Request) (storage.EnrichedUser, error)
-}
-
-type Adder interface {
-	AddPerson(storage.EnrichedUser) error
-	DelPerson(string, string) error
-	ChangePerson(storage.EnrichedUser) error
-}
-
-type EndpointCaller interface {
-	CallEndpoint(string, string) (*http.Response, error)
-}
 
 type Endpoint struct {
 	dec Decoder
@@ -84,7 +66,7 @@ func (e *Endpoint) StatusDel(w http.ResponseWriter, r *http.Request) {
 	log.Println("Получили запрос от клиента")
 	if r.Method != "DELETE" {
 		w.Write([]byte("метод запроса должен быть DELETE"))
-		log.Println("метод запроса не POST, а", r.Method)
+		log.Println("метод запроса не DELETE, а", r.Method)
 		return
 	}
 	serie, number, err := e.dec.DecodeJSON(r)
@@ -109,16 +91,9 @@ func (e *Endpoint) StatusChange(w http.ResponseWriter, r *http.Request) {
 	log.Println("Получили запрос от клиента")
 	if r.Method != "PATCH" {
 		w.Write([]byte("метод запроса должен быть PATCH"))
-		log.Println("метод запроса не POST, а", r.Method)
+		log.Println("метод запроса не PATCH, а", r.Method)
 		return
 	}
-	// serie, number, err := e.dec.DecodeJSON(r)
-	// if err != nil {
-	// 	http.Error(w, msgErrJSON, http.StatusBadRequest)
-	// 	log.Println(msgErrJSON, err)
-	// 	return
-	// }
-
 	enrichedUserData, err := e.dec.ChangeUserData(r)
 	if err != nil {
 		return
@@ -133,4 +108,60 @@ func (e *Endpoint) StatusChange(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte("Пользователь успешно обновлён в БД"))
+}
+
+func (e *Endpoint) StatusFilter(w http.ResponseWriter, r *http.Request) {
+	log.Println("Получили запрос от клиента")
+	if r.Method != "GET" {
+		w.Write([]byte("метод запроса должен быть GET"))
+		log.Println("метод запроса не POST, а", r.Method)
+		return
+	}
+	enrichedUserData, err := e.dec.ChangeUserData(r)
+	if err != nil {
+		return
+	}
+	sliceUsers, err := e.adr.GetUsersByFilter(enrichedUserData)
+	if err != nil {
+		http.Error(w, "неудача при получении данных из БД", http.StatusInternalServerError)
+		log.Println("неудача при получении данных из БД", err)
+		return
+	}
+	log.Println("Перечень пользователей успешно получен из БД")
+	response, err := e.dec.GetPudding(sliceUsers)
+	if err != nil {
+		http.Error(w, "Не удалось преобразовать данные в JSON", http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(response)
+}
+
+func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
+	log.Println("Получили запрос от клиента")
+	if r.Method != "PUT" {
+		w.Write([]byte("метод запроса должен быть PUT"))
+		log.Println("метод запроса не PUT, а", r.Method)
+		return
+	}
+	userTask, err := e.dec.DecodeJSONTask(r)
+	if err != nil {
+		http.Error(w, "не распознан JSON в задаче", http.StatusBadRequest)
+		return
+	}
+	startTimeTask, err := e.dec.Now()
+	if err != nil {
+		return
+	}
+	log.Printf("Старт задачи %v в : %v.\n", userTask.TaskName, startTimeTask)
+
+	err = e.adr.AddStartTask(userTask, startTimeTask)
+	if err != nil {
+		return
+	}
+	log.Println("Старт задачи добавлен в БД")
+
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Старт задачи добавлен в БД"))
 }
