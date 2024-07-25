@@ -41,7 +41,6 @@ func (e *Endpoint) StatusAdd(w http.ResponseWriter, r *http.Request) {
 	}
 	resp, err := e.edc.CallEndpoint(serie, number)
 	if err != nil {
-		http.Error(w, "неудача при выполнении GET-запроса на эндпоинт /info", http.StatusInternalServerError)
 		logger.Log.Debug("неудача при выполнении GET-запроса на эндпоинт /info", err)
 	} else {
 		defer resp.Body.Close()
@@ -97,6 +96,7 @@ func (e *Endpoint) StatusChange(w http.ResponseWriter, r *http.Request) {
 	}
 	enrichedUserData, err := e.dec.ChangeUserData(r)
 	if err != nil {
+		http.Error(w, msgErrJSON, http.StatusBadRequest)
 		return
 	}
 	err = e.adr.ChangePerson(enrichedUserData)
@@ -120,6 +120,7 @@ func (e *Endpoint) StatusFilter(w http.ResponseWriter, r *http.Request) {
 	}
 	enrichedUserData, err := e.dec.ChangeUserData(r)
 	if err != nil {
+		http.Error(w, "не распознано тело запроса", http.StatusBadRequest)
 		return
 	}
 	sliceUsers, err := e.adr.GetUsersByFilter(enrichedUserData)
@@ -151,11 +152,13 @@ func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, "не распознан JSON в задаче", http.StatusBadRequest)
 		logger.Log.Debug("не распознан JSON в задаче")
+		http.Error(w, msgErrJSON, http.StatusBadRequest)
 		return
 	}
 	startTimeTask, err := e.dec.Now()
 	if err != nil {
 		logger.Log.Debug("не удалось вычислить текущее время")
+		http.Error(w, "не удалось вычислить текущее время", http.StatusInternalServerError)
 		return
 	}
 	logger.Log.Info("Отсчёт времени начат по задаче: ", userTask.TaskName)
@@ -163,6 +166,7 @@ func (e *Endpoint) StatusStart(w http.ResponseWriter, r *http.Request) {
 	err = e.adr.AddStartTask(userTask, startTimeTask)
 	if err != nil {
 		logger.Log.Debug("не удалось добавить старт задачи в БД")
+		http.Error(w, "не удалось добавить старт задачи в БД", http.StatusInternalServerError)
 		return
 	}
 	logger.Log.Info("Старт задачи добавлен в БД")
@@ -187,12 +191,14 @@ func (e *Endpoint) StatusFinish(w http.ResponseWriter, r *http.Request) {
 	finishTimeTask, err := e.dec.Now()
 	if err != nil {
 		logger.Log.Debug("не удалось вычислить текущее время")
+		http.Error(w, "не удалось вычислить текущее время", http.StatusInternalServerError)
 		return
 	}
 	logger.Log.Info("Вычислено время окончания задачи: ", userTask.TaskName)
 
 	err = e.adr.AddFinishTask(userTask, finishTimeTask)
 	if err != nil {
+		http.Error(w, "не удалось добавить окончание задачи в БД", http.StatusInternalServerError)
 		return
 	}
 	logger.Log.Info("Окончание задачи добавлено в БД")
@@ -210,19 +216,21 @@ func (e *Endpoint) StatusDur(w http.ResponseWriter, r *http.Request) {
 	}
 	userTask, err := e.dec.DecodeJsonTaskDur(r)
 	if err != nil {
-		http.Error(w, "не распознан JSON в задаче", http.StatusInternalServerError)
+		http.Error(w, "не распознан JSON в задаче", http.StatusBadRequest)
 		logger.Log.Debug("не распознан JSON в задаче")
 		return
 	}
 	userTaskDur, err := e.adr.FindTimeTask(userTask)
 	if err != nil {
 		logger.Log.Debug("не получено время старта и финиша задачи")
+		http.Error(w, "не получено время старта и финиша задачи", http.StatusInternalServerError)
 		return
 	}
 	logger.Log.Info("Получены данные по задачам пользователя из БД")
 	response, err := e.dec.GetSortTasks(userTaskDur)
 	if err != nil {
 		logger.Log.Debug("не удалось преобразовать данные из БД в JSON")
+		http.Error(w, "не удалось преобразовать данные из БД в JSON", http.StatusInternalServerError)
 		return
 	}
 

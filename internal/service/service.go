@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -102,18 +103,21 @@ func (s *Service) ChangeUserData(req *http.Request) (storage.EnrichedUser, error
 }
 
 func (s *Service) GetPudding(users []storage.EnrichedUser) ([]byte, error) {
+	logger.Log.Info("приступили к пагинации")
 	amountElemOnPage := 2 // Количество позиций в ответе клиенту на одной странице
 	startPageDisplay := 1 // Отображаем ответ клиенту с первой страницы
 	// В дальнейшем возможна реализация обработчика для обновления информации на новой странице
 	// При получении get-запроса другого номера страницы
 	startIdx := (startPageDisplay - 1) * amountElemOnPage
 	endIdx := startIdx + amountElemOnPage
-
-	var slicedUsers []storage.EnrichedUser
-	if startIdx < len(users) && endIdx > len(users) {
+	if startIdx >= len(users) {
+		return nil, errors.New("вне диапазона")
+	}
+	if endIdx > len(users) {
 		endIdx = len(users)
 	}
-	slicedUsers = users[startIdx:endIdx]
+	sortUsersByID(users)
+	slicedUsers := users[startIdx:endIdx]
 
 	response, err := json.Marshal(slicedUsers)
 	if err != nil {
@@ -121,4 +125,10 @@ func (s *Service) GetPudding(users []storage.EnrichedUser) ([]byte, error) {
 		return nil, err
 	}
 	return response, nil
+}
+
+func sortUsersByID(users []storage.EnrichedUser) {
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].ID < users[j].ID
+	})
 }
