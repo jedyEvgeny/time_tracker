@@ -1,11 +1,17 @@
 openapi: 3.0.3
 info:
-  title: People info
+  title: Тайм-трекер
   version: 0.0.1
+  contact:
+    name: Евгений Клюкман
+    url: https://t.me/EvKly
+  description: Тестовой задание компании Effective mobile на джуниор go-разработчика
 paths:
   /addUser:
     post:
       summary: Добавление пользователя
+      tags:
+        - users
       requestBody:
         required: true
         content:
@@ -27,6 +33,8 @@ paths:
   /delUser:
     delete:
       summary: Удаление пользователя из БД по серии и номеру паспорта
+      tags:
+        - users
       requestBody:
         required: true
         content:
@@ -48,6 +56,8 @@ paths:
   /changeUser:
     patch:
       summary: Изменение информации о пользователе по паспорту и серии
+      tags:
+        - users
       requestBody:
         required: true
         content:
@@ -69,6 +79,8 @@ paths:
   /getUsers:
     get:
       summary: Получение пользователей с фильтром по всем полям и пагинацией на 2 элемента, отображение с первой страницы
+      tags:
+        - users
       requestBody:
         required: true
         content:
@@ -81,6 +93,7 @@ paths:
           content:
             application/json:
               schema:
+                type: object
               example:
                 - id: 1
                   passportSerie: "1234"
@@ -103,6 +116,8 @@ paths:
   /startTask:
     put:
       summary: Начало отсчёта времени по задаче
+      tags:
+        - tasks
       requestBody:
         required: true
         content:
@@ -124,6 +139,8 @@ paths:
   /finishTask:
     put:
       summary: Окончание отсчёта времени по задаче
+      tags:
+        - tasks
       requestBody:
         required: true
         content:
@@ -143,8 +160,10 @@ paths:
         '500':
           description: Внутренняя ошибка сервера
   /duration:
-    put:
+    get:
       summary: Перечень задач пользователя 
+      tags:
+        - tasks
       requestBody:
         required: true
         content:
