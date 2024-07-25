@@ -3,7 +3,6 @@
 package app
 
 import (
-	"log"
 	"net/http"
 	"os"
 
@@ -11,6 +10,7 @@ import (
 	routes "github.com/jedyEvgeny/time_tracker/internal/delivery/http"
 	"github.com/jedyEvgeny/time_tracker/internal/service"
 	"github.com/jedyEvgeny/time_tracker/pkg/httpclient"
+	"github.com/jedyEvgeny/time_tracker/pkg/logger"
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 	"github.com/joho/godotenv"
 )
@@ -23,6 +23,7 @@ type App struct {
 }
 
 func New() (*App, error) {
+	logger.Run()
 	a := &App{}
 	a.db = storage.New()
 	a.s = service.New()
@@ -37,7 +38,7 @@ func New() (*App, error) {
 }
 
 func (a *App) Run() error {
-	log.Println("Запускаем сервер")
+	logger.Log.Info("Запускаем сервер")
 	httpServerPort, err := findEnvironmentVariable("APP_HTTP_SERVER_PORT")
 	if err != nil {
 		return err
@@ -46,14 +47,14 @@ func (a *App) Run() error {
 	if err != nil {
 		return err
 	}
-	log.Println("Сервер закончил работу")
+	logger.Log.Info("Сервер закончил работу")
 	return nil
 }
 
 func findEnvironmentVariable(vrbl string) (string, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
-		log.Printf("ошибка загрузки переменных окружения: %v\n", err)
+		logger.Log.Debug("ошибка загрузки переменных окружения: ", err)
 		return "", err
 	}
 	value := os.Getenv(vrbl)

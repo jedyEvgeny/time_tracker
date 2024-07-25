@@ -1,10 +1,10 @@
 package httpclient
 
 import (
-	"log"
 	"net/http"
 
 	config "github.com/jedyEvgeny/time_tracker/etc"
+	"github.com/jedyEvgeny/time_tracker/pkg/logger"
 )
 
 type Client struct{}
@@ -18,10 +18,9 @@ func (c *Client) CallEndpoint(serie, number string) (*http.Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	log.Println(config.HTTPClientHost)
 	baseUrl := "https://" + config.HTTPClientHost + "/info"
 	infoEndpoint := baseUrl + "?passportSerie=" + serie + "&passportNumber=" + number
-	log.Println("Сформирован get-запрос: ", infoEndpoint)
+	logger.Log.Info("Сформирован get-запрос: ", infoEndpoint)
 	resp, err := http.Get(infoEndpoint)
 	return resp, err
 }

@@ -6,11 +6,11 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/golang-migrate/migrate/v4"
 	"github.com/jackc/pgx/v4/pgxpool"
 	config "github.com/jedyEvgeny/time_tracker/etc"
+	"github.com/jedyEvgeny/time_tracker/pkg/logger"
 
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
@@ -38,21 +38,21 @@ func (d *Database) Setup() error {
 		config.StoragePostgresDBName,
 		config.StoragePostgresSSLMode,
 	)
-	log.Println("URL для подключения к БД:", dbUrl)
+	logger.Log.Info("URL для подключения к БД:", dbUrl)
 
 	err = executeMigrations(dbUrl)
 	if err != nil {
 		return err
 	}
-	log.Println("Таблицы БД готовы к работе")
+	logger.Log.Info("Таблицы БД готовы к работе")
 
 	//Создаём пул для общения с БД
 	d.poolConnectionsDb, err = pgxpool.Connect(context.Background(), dbUrl)
 	if err != nil {
-		log.Printf("не удаётся связаться с БД по пути: %v; %v\n", dbUrl, err)
+		logger.Log.Debug("не удаётся создать пул к БД", dbUrl, err)
 		return err
 	}
-	log.Println("Соединение PostgreSQL установлено")
+	logger.Log.Info("Пул соединений с PostgreSQL установлен")
 
 	return nil
 }
@@ -64,19 +64,19 @@ func executeMigrations(dbUrl string) error {
 		pathToMigrations,
 		dbUrl)
 	if err != nil {
-		log.Printf("не удаётся создать миграцию: %v\n", err)
+		logger.Log.Debug("не удаётся создать миграцию: ", err)
 		return err
 	}
 	err = m.Up()
 	if errors.Is(err, migrate.ErrNoChange) {
-		log.Println("В базе данных нет новых миграций для применения")
+		logger.Log.Debug("в базе данных нет новых миграций для применения", err)
 		return nil
 	}
 	if err != nil {
-		log.Println("ошибка при выполнении миграции:", err)
+		logger.Log.Debug("ошибка при выполнении миграции:", err)
 		return err
 	}
-	log.Println("Миграции успешно выполнены")
+	logger.Log.Info("Миграции успешно выполнены")
 	return nil
 }
 
@@ -87,7 +87,7 @@ func (d *Database) AddPerson(e EnrichedUser) error {
 	if err != nil {
 		return err
 	}
-	log.Println("Приступили к добавлению информации в БД")
+	logger.Log.Info("Приступили к добавлению информации в БД")
 	query := `
 	INSERT INTO users
 	(passport_serie, passport_number, surname, name, patronymic, address)
@@ -114,7 +114,7 @@ func (d *Database) checkPresonInDB(serie, number string) error {
 		return err
 	}
 	if count > 0 {
-		log.Println("человек с данным паспортом есть в БД:", serie, number)
+		logger.Log.Debug("человек с данным паспортом есть в БД:", serie, number)
 		err = errors.New("паспортные данные есть в БД")
 		return err
 	}
@@ -125,10 +125,10 @@ func (d *Database) DelPerson(serie, number string) error {
 	err := d.checkPresonInDB(serie, number)
 	if err == nil {
 		err := errors.New("отсутствует пользователь для удаления из БД")
-		log.Println("отсутствует пользователь для удаления из БД")
+		logger.Log.Debug("отсутствует пользователь для удаления из БД")
 		return err
 	}
-	log.Println("Приступили к удалению информации из БД")
+	logger.Log.Info("Приступили к удалению информации из БД")
 	query := "DELETE FROM users WHERE passport_serie = $1 AND passport_number = $2"
 
 	_, err = d.poolConnectionsDb.Exec(context.Background(),
@@ -145,10 +145,10 @@ func (d *Database) ChangePerson(e EnrichedUser) error {
 	err := d.checkPresonInDB(serie, number)
 	if err == nil {
 		err := errors.New("отсутствует пользователь для удаления из БД")
-		log.Println("отсутствует пользователь для удаления из БД")
+		logger.Log.Debug("отсутствует пользователь для удаления из БД")
 		return err
 	}
-	log.Println("Приступили к изменению информации в БД")
+	logger.Log.Info("Приступили к изменению информации в БД")
 	query := `
 	UPDATE users
 	SET surname = $1, name = $2, patronymic = $3, address = $4

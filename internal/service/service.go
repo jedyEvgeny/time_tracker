@@ -4,16 +4,15 @@ package service
 import (
 	"encoding/json"
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
+	"github.com/jedyEvgeny/time_tracker/pkg/logger"
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
 
-type Service struct {
-}
+type Service struct{}
 
 func New() *Service {
 	return &Service{}
@@ -21,51 +20,51 @@ func New() *Service {
 
 func (s *Service) DecodeJSON(r *http.Request) (string, string, error) {
 	var userData storage.User
-	log.Println("Приступили к декодированию входящего JSON пользователя")
+	logger.Log.Info("Приступили к декодированию входящего JSON пользователя")
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
 		return "", "", err
 	}
-	log.Println("Закончили декодирование входящего JSON пользователя")
+	logger.Log.Info("Закончили декодирование входящего JSON пользователя")
 	serie, number, err := checkJSON(userData)
 	if err != nil {
 		return "", "", err
 	}
-	log.Println("Проверки корректности JSON выполнены успешно")
+	logger.Log.Info("Проверки корректности JSON выполнены успешно")
 	return serie, number, nil
 }
 
 func checkJSON(u storage.User) (string, string, error) {
 	if len(u.PassportNumber) != 11 {
-		log.Println("ожидалось 11 символов в запросе")
+		logger.Log.Debug("ожидалось 11 символов в запросе")
 		err := errors.New("неверная длина строки, ожидается 11 символов")
 		return "", "", err
 	}
 	parts := strings.Split(u.PassportNumber, " ")
 	if len(parts) != 2 {
-		log.Println("ожидался один пробел в запросе")
+		logger.Log.Debug("ожидался один пробел в запросе")
 		err := errors.New("ожидался один пробел в запросе")
 		return "", "", err
 	}
 	if len(parts[0]) != 4 && len(parts[1]) != 6 {
-		log.Println("неверная длина блока серии или номера паспорта")
+		logger.Log.Debug("неверная длина блока серии или номера паспорта")
 		err := errors.New("неверная длина блока серии или номера паспорта")
 		return "", "", err
 	}
 	elFirst, err := strconv.Atoi(parts[0])
 	if err != nil {
-		log.Println("в первом блоке тела запроса не только цифры")
+		logger.Log.Debug("в первом блоке тела запроса не только цифры")
 		err := errors.New("в первом блоке тела запроса не только цифры")
 		return "", "", err
 	}
 	elSecond, err := strconv.Atoi(parts[1])
 	if err != nil {
-		log.Println("во втором блоке тела запроса не только цифры")
+		logger.Log.Debug("во втором блоке тела запроса не только цифры")
 		err := errors.New("во втором блоке тела запроса не только цифры")
 		return "", "", err
 	}
 	if elFirst < 0 || elSecond < 0 {
-		log.Println("цифровой блок со знаком минус не допустим")
+		logger.Log.Debug("цифровой блок со знаком минус не допустим")
 		err := errors.New("цифровой блок со знаком минус не допустим")
 		return "", "", err
 	}
@@ -77,28 +76,28 @@ func (s *Service) EnrichUserData(r *http.Response, serie, number string) (storag
 	userData.PassportNumber = number
 	userData.PassportSerie = serie
 	if r == nil {
-		log.Println("Обогощение данных со стороннего API не выполнено")
+		logger.Log.Debug("Обогощение данных со стороннего API не выполнено")
 		return userData, nil
 	}
-	log.Println("Приступили к декодированию входящего JSON стороннего API")
+	logger.Log.Info("Приступили к декодированию входящего JSON стороннего API")
 	err := json.NewDecoder(r.Body).Decode(&userData)
 	if err != nil {
-		log.Println("декодирование входящего JSON стороннего API не выполнено")
+		logger.Log.Debug("декодирование входящего JSON стороннего API не выполнено")
 		return userData, err
 	}
-	log.Println("Выполнено обогощение данных на стороннем API")
+	logger.Log.Info("Выполнено обогощение данных на стороннем API")
 	return userData, nil
 }
 
 func (s *Service) ChangeUserData(req *http.Request) (storage.EnrichedUser, error) {
 	var userData storage.EnrichedUser
-	log.Println("Приступили к обогощению данных из JSON")
+	logger.Log.Info("Приступили к обогощению данных из JSON")
 	err := json.NewDecoder(req.Body).Decode(&userData)
 	if err != nil {
-		log.Println("декодирование обогощённого JSON не выполнено")
+		logger.Log.Debug("декодирование обогощённого JSON не выполнено")
 		return userData, err
 	}
-	log.Println("Выполнено обогощение данных из JSON")
+	logger.Log.Info("Выполнено обогощение данных из JSON")
 	return userData, nil
 }
 
@@ -107,18 +106,18 @@ func (s *Service) GetPudding(users []storage.EnrichedUser) ([]byte, error) {
 	startPageDisplay := 1 // Отображаем ответ клиенту с первой страницы
 	// В дальнейшем возможна реализация обработчика для обновления информации на новой странице
 	// При получении get-запроса другого номера страницы
-
 	startIdx := (startPageDisplay - 1) * amountElemOnPage
 	endIdx := startIdx + amountElemOnPage
 
 	var slicedUsers []storage.EnrichedUser
-	if startIdx < len(users) {
-		slicedUsers = users[startIdx:min(endIdx, len(users))]
+	if startIdx < len(users) && endIdx > len(users) {
+		endIdx = len(users)
 	}
+	slicedUsers = users[startIdx:endIdx]
 
 	response, err := json.Marshal(slicedUsers)
 	if err != nil {
-		log.Println("не удалось преобразовать данные из БД в JSON")
+		logger.Log.Debug("не удалось преобразовать данные из БД в JSON")
 		return nil, err
 	}
 	return response, nil

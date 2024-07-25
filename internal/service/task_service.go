@@ -4,24 +4,24 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
 	"sort"
 	"strconv"
 	"time"
 
+	"github.com/jedyEvgeny/time_tracker/pkg/logger"
 	"github.com/jedyEvgeny/time_tracker/pkg/storage"
 )
 
 func (s *Service) DecodeJSONTask(r *http.Request) (storage.TaskEnrichedUser, error) {
 	var userTask storage.TaskEnrichedUser
-	log.Println("Приступили к декодированию входящего JSON задачи")
+	logger.Log.Info("Приступили к декодированию входящего JSON задачи")
 	err := json.NewDecoder(r.Body).Decode(&userTask)
 	if err != nil {
-		log.Println("не распознан JSON задачи")
+		logger.Log.Debug("не распознан JSON задачи")
 		return userTask, err
 	}
-	log.Println("Закончили декодирование входящего JSON пользователя")
+	logger.Log.Info("Закончили декодирование входящего JSON пользователя")
 	if userTask.TaskName == "" {
 		err := errors.New("нет наименования задачи")
 		return userTask, err
@@ -30,35 +30,35 @@ func (s *Service) DecodeJSONTask(r *http.Request) (storage.TaskEnrichedUser, err
 	if err != nil {
 		return userTask, err
 	}
-	log.Println("Проверки корректности JSON выполнены успешно")
+	logger.Log.Info("Проверки корректности JSON выполнены успешно")
 	return userTask, nil
 }
 
 func checkJsonPassport(u storage.TaskEnrichedUser) error {
 	if len(u.PassportSerie) != 4 {
-		log.Println("ожидалось 4 символов в серии паспорта")
+		logger.Log.Debug("ожидалось 4 символов в серии паспорта")
 		err := errors.New("неверная длина серии паспорта, ожидается 4 символа")
 		return err
 	}
 	if len(u.PassportNumber) != 6 {
-		log.Println("ожидалось 6 символов в номере паспорта")
+		logger.Log.Debug("ожидалось 6 символов в номере паспорта")
 		err := errors.New("неверная длина номера паспорта, ожидается 6 символов")
 		return err
 	}
 	elFirst, err := strconv.Atoi(u.PassportSerie)
 	if err != nil {
-		log.Println("в серии паспорта не только цифры")
+		logger.Log.Debug("в серии паспорта не только цифры")
 		err := errors.New("в номере паспорта не только цифры")
 		return err
 	}
 	elSecond, err := strconv.Atoi(u.PassportNumber)
 	if err != nil {
-		log.Println("во втором блоке тела запроса не только цифры")
+		logger.Log.Debug("во втором блоке тела запроса не только цифры")
 		err := errors.New("во втором блоке тела запроса не только цифры")
 		return err
 	}
 	if elFirst < 0 || elSecond < 0 {
-		log.Println("цифровой блок со знаком минус не допустим")
+		logger.Log.Debug("цифровой блок со знаком минус не допустим")
 		err := errors.New("цифровой блок со знаком минус не допустим")
 		return err
 	}
@@ -68,7 +68,7 @@ func checkJsonPassport(u storage.TaskEnrichedUser) error {
 func (s *Service) Now() (time.Time, error) {
 	vladivostokLocation, err := time.LoadLocation("Asia/Vladivostok")
 	if err != nil {
-		log.Println("ошибка при загрузке локации:", err)
+		logger.Log.Debug("ошибка при загрузке локации:", err)
 		return time.Time{}, err
 	}
 	return time.Now().In(vladivostokLocation), nil
@@ -76,18 +76,18 @@ func (s *Service) Now() (time.Time, error) {
 
 func (s *Service) DecodeJsonTaskDur(r *http.Request) (storage.TaskEnrichedUser, error) {
 	var userTask storage.TaskEnrichedUser
-	log.Println("Приступили к декодированию входящего JSON задачи")
+	logger.Log.Info("Приступили к декодированию входящего JSON задачи")
 	err := json.NewDecoder(r.Body).Decode(&userTask)
 	if err != nil {
-		log.Println("не распознан JSON задачи")
+		logger.Log.Debug("не распознан JSON задачи")
 		return userTask, err
 	}
-	log.Println("Закончили декодировать входящий JSON пользователя")
+	logger.Log.Info("Закончили декодировать входящий JSON пользователя")
 	err = checkJsonPassport(userTask)
 	if err != nil {
 		return userTask, err
 	}
-	log.Println("Проверки корректности JSON выполнены успешно")
+	logger.Log.Info("Проверки корректности JSON выполнены успешно")
 	return userTask, nil
 }
 
@@ -120,7 +120,7 @@ func countDuringEvenTask(u []storage.UserTask) []TaskDuration {
 func getResponse(taskDurationsSlice []TaskDuration) []byte {
 	var response []byte
 	for _, task := range taskDurationsSlice {
-		taskInfo := fmt.Sprintf("задача '%s' занимает: %d часов - %d минут", task.TaskName, task.Hours, task.Minutes)
+		taskInfo := fmt.Sprintf("задача '%s' занимает: %d час. и %d мин.", task.TaskName, task.Hours, task.Minutes)
 		response = append(response, taskInfo...)
 		response = append(response, '\n')
 	}
