@@ -1,0 +1,43 @@
+Debug:	2024/07/25 15:28:36 logger.go:40: в базе данных нет новых миграций для применения no change
+Debug:	2024/07/25 15:28:50 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "http://localhost/info?passportSerie=1234&passportNumber=567891": dial tcp [::1]:80: connect: connection refused
+Debug:	2024/07/25 15:28:50 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 15:28:50 logger.go:40: человек с данным паспортом есть в БД: 1234 567891
+Debug:	2024/07/25 15:28:50 logger.go:40: неудача при добавлении данных в БД паспортные данные есть в БД
+Debug:	2024/07/25 15:32:22 logger.go:40: в базе данных нет новых миграций для применения no change
+Debug:	2024/07/25 15:32:26 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567891": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 15:32:26 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 15:32:26 logger.go:40: человек с данным паспортом есть в БД: 1234 567891
+Debug:	2024/07/25 15:32:26 logger.go:40: неудача при добавлении данных в БД паспортные данные есть в БД
+Debug:	2024/07/25 15:32:58 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567891": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 15:32:58 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 15:32:58 logger.go:40: человек с данным паспортом есть в БД: 1234 567891
+Debug:	2024/07/25 15:32:58 logger.go:40: неудача при добавлении данных в БД паспортные данные есть в БД
+Debug:	2024/07/25 15:33:36 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567810": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 15:33:36 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 20:25:55 logger.go:40: в базе данных нет новых миграций для применения no change
+Debug:	2024/07/25 20:25:59 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567899": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 20:25:59 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 20:25:59 logger.go:40: человек с данным паспортом есть в БД: 1234 567899
+Debug:	2024/07/25 20:25:59 logger.go:40: неудача при добавлении данных в БД паспортные данные есть в БД
+Debug:	2024/07/25 21:23:57 logger.go:40: задача не начата
+Debug:	2024/07/25 21:51:58 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567890": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 21:51:58 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 21:52:00 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567890": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 21:52:00 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 21:52:00 logger.go:40: человек с данным паспортом есть в БД: 1234 567890
+Debug:	2024/07/25 21:52:00 logger.go:40: неудача при добавлении данных в БД паспортные данные есть в БД
+Debug:	2024/07/25 21:52:10 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567891": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 21:52:10 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 21:52:17 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567892": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 21:52:17 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 21:52:22 logger.go:40: ожидалось 11 символов в запросе
+Debug:	2024/07/25 21:52:22 logger.go:40: не распознаны номер и серия пользователя неверная длина строки, ожидается 11 символов
+Debug:	2024/07/25 21:52:29 logger.go:40: неудача при выполнении GET-запроса на эндпоинт /info Get "https://localhost/info?passportSerie=1234&passportNumber=567896": dial tcp [::1]:443: connect: connection refused
+Debug:	2024/07/25 21:52:29 logger.go:40: Обогощение данных со стороннего API не выполнено
+Debug:	2024/07/25 21:52:35 logger.go:40: человек с данным паспортом есть в БД: 1234 567896
+Debug:	2024/07/25 21:52:40 logger.go:40: ожидалось 11 символов в запросе
+Debug:	2024/07/25 21:52:40 logger.go:40: не распознаны номер и серия пользователя неверная длина строки, ожидается 11 символов
+Debug:	2024/07/25 21:52:53 logger.go:40: человек с данным паспортом есть в БД: 1234 567891
+Debug:	2024/07/25 21:53:20 logger.go:40: ожидалось 6 символов в номере паспорта
+Debug:	2024/07/25 21:53:20 logger.go:40: не распознан JSON в задаче
+Debug:	2024/07/25 21:53:28 logger.go:40: задача не начата

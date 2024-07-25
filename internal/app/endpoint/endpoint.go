@@ -44,7 +44,7 @@ func (e *Endpoint) StatusAdd(w http.ResponseWriter, r *http.Request) {
 		logger.Log.Debug("неудача при выполнении GET-запроса на эндпоинт /info", err)
 	} else {
 		defer resp.Body.Close()
-		logger.Log.Debug("получен ответ от info эндпоинта: ", resp.StatusCode)
+		logger.Log.Debug("получен ответ от /info: ", resp.StatusCode)
 	}
 	enrichedUserData, err := e.dec.EnrichUserData(resp, serie, number)
 	if err != nil {

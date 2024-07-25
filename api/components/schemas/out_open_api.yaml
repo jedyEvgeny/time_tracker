@@ -1,0 +1,244 @@
+openapi: 3.0.3
+info:
+  title: People info
+  version: 0.0.1
+paths:
+  /addUser:
+    post:
+      summary: Добавление пользователя
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddUserRequest'
+      responses:
+        '200':
+          description: Добавление пользователя в БД по серии и номеру паспорта
+          content:
+            application/json:
+              schema:
+                type: object
+              example: Пользователь успешно добавлен в БД
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /delUser:
+    delete:
+      summary: Удаление пользователя из БД по серии и номеру паспорта
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddUserRequest'
+      responses:
+        '200':
+          description: Пользователь успешно удален из БД
+          content:
+            application/json:
+              schema:
+                type: object
+              example: Пользователь успешно удален из БД
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /changeUser:
+    patch:
+      summary: Изменение информации о пользователе по паспорту и серии
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangeUserRequest'
+      responses:
+        '200':
+          description: Информация о пользователе успешно изменена в БД
+          content:
+            application/json:
+              schema:
+                type: object
+              example: Пользователь успешно обновлен в БД
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /getUsers:
+    get:
+      summary: Получение пользователей с фильтром по всем полям и пагинацией на 2 элемента, отображение с первой страницы
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GetUsers'
+      responses:
+        '200':
+          description: Перечень пользователей успешно получен из БД
+          content:
+            application/json:
+              schema:
+              example:
+                - id: 1
+                  passportSerie: "1234"
+                  passportNumber: "567890"
+                  surname: ""
+                  name: "Алиса"
+                  patronymic: ""
+                  address: "система Солнечная, планета Земля"
+                - id: 2
+                  passportSerie: "1234"
+                  passportNumber: "567891"
+                  surname: ""
+                  name: "Евгений"
+                  patronymic: ""
+                  address: "система Солнечная, планета Земля"
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /startTask:
+    put:
+      summary: Начало отсчёта времени по задаче
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartFinishTask'
+      responses:
+        '200':
+          description: Информация о внесении в БД старта выполнения задачи
+          content:
+            application/json:
+              schema:
+                type: object
+              example: Старт задачи добавлен в БД
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /finishTask:
+    put:
+      summary: Окончание отсчёта времени по задаче
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StartFinishTask'
+      responses:
+        '200':
+          description: Информация о внесении в БД окончания выполнения задачи
+          content:
+            application/json:
+              schema:
+                type: object
+              example: Время окончания задачи добавлено в БД
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера
+  /duration:
+    put:
+      summary: Перечень задач пользователя 
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ListTasks'
+      responses:
+        '200':
+          description: Информация о внесении в БД окончания выполнения задачи с сортировкой от больших трудозатрат к меньшим
+          content:
+            application/json:
+              schema:
+                type: object
+              example: >-
+                Задача 'Перепрограммировать роботов' занимает: 0 час. и 3 мин.
+                Задача 'Спасти птицу-Говоруна' занимает: 0 час. и 0 мин.
+        '400':
+          description: Ошибка в запросе
+        '500':
+          description: Внутренняя ошибка сервера          
+components:
+  schemas:
+    AddUserRequest:
+      type: object
+      properties:
+        passportNumber:
+          type: string
+          example: "1234 567899"
+    ChangeUserRequest:
+      type: object
+      properties:
+        passportSerie:
+          type: string
+          example: "1234"
+        passportNumber:
+          type: string
+          example: "567891"
+        surname:
+          type: string
+          example: ""
+        name:
+          type: string
+          example: "Евгений"
+        patronymic:
+          type: string
+          example: ""
+        address:
+          type: string
+          example: "система Солнечная, планета Земля"
+    PassportSerieFilter:
+      type: object
+      properties:
+        passportSerie:
+          type: string
+          example: "1234"
+    GetUsers:
+      type: object
+      properties:
+        passportSerie:
+          type: string
+          example: "1234"
+        passportNumber:
+          type: string
+          example: ""
+        surname:
+          type: string
+          example: ""
+        name:
+          type: string
+          example: ""
+        patronymic:
+          type: string
+          example: ""
+        address:
+          type: string
+          example: "система Солнечная, планета Земля"
+    StartFinishTask:  
+      type: object
+      properties:
+        passportSerie:
+          type: string
+          example: "1234"
+        passportNumber:
+          type: string
+          example: "567890"
+        taskName:
+          type: string
+          example: "Перепрограммировать роботов"
+    ListTasks:
+      type: object
+      properties:
+        passportSerie:
+          type: string
+          example: "1234"
+        passportNumber:
+          type: string
+          example: "567890"
